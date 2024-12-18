@@ -33,7 +33,7 @@ public class FlightDAO {
         List<Flight> flights = new ArrayList<>();
         try {
             //Write SQL logic here
-            String sql = "change me";
+            String sql = "SELECT * FROM flight;";
 
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             ResultSet rs = preparedStatement.executeQuery();
@@ -64,15 +64,13 @@ public class FlightDAO {
      */
     public Flight getFlightById(int id){
         Connection connection = ConnectionUtil.getConnection();
-        try {
-            //Write SQL logic here
-            String sql = "change me";
+        String sql = "SELECT * FROM flight where flight_id = ?;";//move the sql string outside the try 
+        try(PreparedStatement ps = connection.prepareStatement(sql);){//moving the ps to the try attempt for auto closing
             
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-
             //write preparedStatement's setString and setInt methods here.
+            ps.setInt(1, id);
 
-            ResultSet rs = preparedStatement.executeQuery();
+            ResultSet rs = ps.executeQuery();
             while(rs.next()){
                 Flight flight = new Flight(rs.getInt("flight_id"), rs.getString("departure_city"),
                         rs.getString("arrival_city"));
@@ -105,17 +103,14 @@ public class FlightDAO {
      */
     public Flight insertFlight(Flight flight){
         Connection connection = ConnectionUtil.getConnection();
-        try {
-            //Write SQL logic here. When inserting, you only need to define the departure_city and arrival_city
-            //values (two columns total!)
-            String sql = "change me" ;
-            PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        String sql = "INSERT INTO flight (departure_city, arrival_city) VALUES (?, ?);" ;
+        try(PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);){
+     
+            ps.setString(1, flight.getDeparture_city());
+            ps.setString(2, flight.getArrival_city());
 
-            //write preparedStatement's setString and setInt methods here.
-
-
-            preparedStatement.executeUpdate();
-            ResultSet pkeyResultSet = preparedStatement.getGeneratedKeys();
+            ps.executeUpdate();
+            ResultSet pkeyResultSet = ps.getGeneratedKeys();
             if(pkeyResultSet.next()){
                 int generated_flight_id = (int) pkeyResultSet.getLong(1);
                 return new Flight(generated_flight_id, flight.getDeparture_city(), flight.getArrival_city());
@@ -145,15 +140,13 @@ public class FlightDAO {
      */
     public void updateFlight(int id, Flight flight){
         Connection connection = ConnectionUtil.getConnection();
-        try {
-            //Write SQL logic here
-            String sql = "change me";
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        String sql = "update flight set departure_city = ?, arrival_city = ? WHERE flight_id = ?;";
+        try(PreparedStatement ps = connection.prepareStatement(sql);){
+            ps.setString(1, flight.getDeparture_city());
+            ps.setString(2, flight.getArrival_city());
+            ps.setInt(3, id);
 
-            //write PreparedStatement setString and setInt methods here.
-
-
-            preparedStatement.executeUpdate();
+            ps.executeUpdate();
         }catch(SQLException e){
             System.out.println(e.getMessage());
         }
@@ -179,15 +172,11 @@ public class FlightDAO {
     public List<Flight> getAllFlightsFromCityToCity(String departure_city, String arrival_city){
         Connection connection = ConnectionUtil.getConnection();
         List<Flight> flights = new ArrayList<>();
-        try {
-            //Write SQL logic here
-            String sql = "change me";
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-
-            //write PreparedStatement setString and setInt methods here.
-
-
-            ResultSet rs = preparedStatement.executeQuery();
+        String sql = "SELECT * FROM flight WHERE departure_city = ? AND arrival_city = ?;";
+        try(PreparedStatement ps = connection.prepareStatement(sql);){
+            ps.setString(1, departure_city);
+            ps.setString(2, arrival_city);
+            ResultSet rs = ps.executeQuery();
             while(rs.next()){
                 Flight flight = new Flight(rs.getInt("flight_id"), rs.getString("departure_city"),
                         rs.getString("arrival_city"));
